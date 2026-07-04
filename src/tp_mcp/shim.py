@@ -1,6 +1,7 @@
 import os
-import sys
 import subprocess
+import sys
+
 import httpx
 from fastapi import FastAPI, Request, Response
 from fastapi.responses import JSONResponse, StreamingResponse
