@@ -51,6 +51,9 @@ dev = [
 
 [project.scripts]
 tp-mcp = "tp_mcp.cli:main"
+tp-auth-set = "tp_mcp.auth_cli:set_cookie"
+tp-auth-status = "tp_mcp.auth_cli:print_status"
+tp-auth-clear = "tp_mcp.auth_cli:clear_credentials"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/tp_mcp"]
