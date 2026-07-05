@@ -127,7 +127,11 @@ async def reverse_proxy(request: Request, path: str):
                 headers=dict(resp.headers),
             )
         else:
-            await resp.read()
+            # httpx.Response.read() is the sync-client method; a response
+            # obtained via AsyncClient.send(..., stream=True) must be drained
+            # with aread() instead, or it raises "Attempted to call a sync
+            # iterator on an async stream." on every non-SSE request.
+            await resp.aread()
             return Response(
                 content=resp.content,
                 status_code=resp.status_code,
