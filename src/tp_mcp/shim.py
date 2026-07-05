@@ -21,10 +21,14 @@ async def startup_event():
     global mcp_proxy_proc
     # Launch mcp-proxy in the background
     # (mcp-proxy --port 8001 --host 127.0.0.1 -- tp-mcp serve)
+    # --pass-environment is required: the mcp SDK's stdio_client only forwards a
+    # safe minimal env (PATH, HOME, etc.) to the spawned server by default, which
+    # silently drops TP_AUTH_COOKIE before it ever reaches `tp-mcp serve`.
     cmd = [
         "mcp-proxy",
         f"--port={PROXY_PORT}",
         "--host=127.0.0.1",
+        "--pass-environment",
         "--",
         "tp-mcp",
         "serve",
