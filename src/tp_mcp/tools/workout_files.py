@@ -185,10 +185,14 @@ async def tp_upload_workout_file(
         }
 
 
+MAX_BASE64_SOURCE_BYTES = 5 * 1024 * 1024
+
+
 async def tp_download_workout_file(
     workout_id: str,
     file_id: str,
     output_path: str | None = None,
+    return_base64: bool = False,
 ) -> dict[str, Any]:
     """Download a workout file by file_id.
 
@@ -196,6 +200,9 @@ async def tp_download_workout_file(
         workout_id: The workout ID.
         file_id: The file ID (from device_files or attachment_files in tp_get_workout).
         output_path: Optional path to save the file. Can be a directory or full file path.
+        return_base64: Also return the file content as a base64 string
+            (capped at 5 MB). Use this when the calling client can't reach
+            the MCP server's filesystem to read the saved_to path.
 
     Returns:
         Dict with file info and saved path, or error.
@@ -250,15 +257,26 @@ async def tp_download_workout_file(
                 data=content,
             )
 
-        return {
+        result: dict[str, Any] = {
             "workout_id": workout_id,
             "file_id": file_id,
             "file_name": filename,
             "content_type": response.content_type,
             "size_bytes": len(content),
             "saved_to": saved_to,
-            "message": "Workout file downloaded successfully.",
         }
+
+        if return_base64:
+            if len(content) > MAX_BASE64_SOURCE_BYTES:
+                result["base64_error"] = (
+                    f"File is {len(content)} bytes, exceeds the 5 MB return_base64 cap. "
+                    "Use saved_to instead if the server filesystem is reachable."
+                )
+            else:
+                result["content_base64"] = base64.b64encode(content).decode("ascii")
+
+        result["message"] = "Workout file downloaded successfully."
+        return result
 
 
 async def tp_delete_workout_file(workout_id: str, file_id: str) -> dict[str, Any]:
